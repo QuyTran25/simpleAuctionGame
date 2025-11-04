@@ -63,11 +63,20 @@ class ClientThread(threading.Thread):
         current_price = self.auction_state.get_current_price()
         current_winner = self.auction_state.get_current_winner()
         
+        # Lấy thông tin vật phẩm từ auction_state
+        item_name = getattr(self.auction_state, 'item_name', 'Sản phẩm bí mật')
+        description = getattr(self.auction_state, 'description', 'Một món đồ đặc biệt')
+        starting_price = getattr(self.auction_state, 'starting_price', current_price)
+        
         welcome_msg = {
             "type": "WELCOME",
             "message": f"Chào mừng {self.client_id}!",
             "current_price": current_price,
-            "current_winner": current_winner if current_winner else "Chưa có người đấu giá"
+            "current_winner": current_winner if current_winner else "Chưa có người đấu giá",
+            # Thông tin vật phẩm đấu giá
+            "item_name": item_name,
+            "description": description,
+            "starting_price": starting_price
         }
         self.send_message(welcome_msg)
     

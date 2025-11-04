@@ -3,10 +3,19 @@ import threading
 import sys
 import signal
 
+# Import các module cần thiết 
+from timer_thread import TimerThread
+from client_thread import ClientThread
+from auction_config import load_auction_config
+
+# TODO:
+
 # CẤU HÌNH SERVER 
 HOST = '0.0.0.0'  # Lắng nghe trên tất cả network interfaces
 PORT = 9999        # Port để clients kết nối
-AUCTION_DURATION = 120  # Thời gian đấu giá (giây) - 2 phút
+
+# AUCTION CONFIG (sẽ được load từ file/args)
+auction_config = None
 
 # BIẾN TOÀN CỤC 
 server_socket = None
@@ -46,15 +55,25 @@ def shutdown_server():
 
 def start_server():
 
-    global server_socket, auction_hub, timer_thread, auction_state
+    global server_socket, auction_hub, timer_thread, auction_state, auction_config
     
     print("=" * 60)
     print("🎯 SIMPLE AUCTION GAME - SERVER")
     print("=" * 60)
     
+    # BƯỚC 0: Load Auction Config
+    print("[CONFIG] Đang load cấu hình đấu giá...")
+    auction_config = load_auction_config()
+    print()
+    
     # BƯỚC 1: Khởi tạo Auction State 
     print("[INIT] Khởi tạo Auction State...")
-    auction_state = AuctionState(starting_price=1000)
+    # Sử dụng config từ file/args
+    auction_state = AuctionState(
+        starting_price=auction_config.starting_price,
+        item_name=auction_config.item_name,
+        description=auction_config.description
+    )
 
     # BƯỚC 2: Khởi tạo Auction Hub
     print("[INIT] Khởi tạo Auction Hub...")
@@ -68,7 +87,7 @@ def start_server():
         server_socket.bind((HOST, PORT))
         server_socket.listen(5)  # Queue tối đa 5 pending connections
         print(f"[SERVER] Đang lắng nghe tại {HOST}:{PORT}")
-        print(f"[SERVER] Thời gian đấu giá: {AUCTION_DURATION} giây")
+        print(f"[SERVER] Thời gian đấu giá: {auction_config.auction_duration} giây")
         print("-" * 60)
     except Exception as e:
         print(f"[ERROR] Không thể khởi động server: {e}")
@@ -77,12 +96,12 @@ def start_server():
     #  BƯỚC 4: Khởi động Timer Thread 
     print("[TIMER] Khởi động timer thread...")
     timer_thread = TimerThread(
-        duration=AUCTION_DURATION,
+        duration=auction_config.auction_duration,
         auction_hub=auction_hub,
         auction_state=auction_state
     )
     timer_thread.start()
-    print(f"[TIMER] Timer đã bắt đầu đếm ngược {AUCTION_DURATION} giây")
+    print(f"[TIMER] Timer đã bắt đầu đếm ngược {auction_config.auction_duration} giây")
     print("-" * 60)
     
     # BƯỚC 5: Accept Loop (Main Server Loop)

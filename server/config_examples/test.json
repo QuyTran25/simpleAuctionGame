@@ -1,0 +1,6 @@
+{
+  "item_name": "Test Item - Demo",
+  "starting_price": 100,
+  "auction_duration": 30,
+  "description": "Chỉ dùng để test nhanh (30 giây)"
+}
