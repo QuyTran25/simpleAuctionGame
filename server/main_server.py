@@ -8,7 +8,9 @@ from timer_thread import TimerThread
 from client_thread import ClientThread
 from auction_config import load_auction_config
 
-# TODO:
+# Import các module Logic và Hub (Người 2)
+from auction_logic import AuctionState
+from auction_hub import AuctionHub
 
 # CẤU HÌNH SERVER 
 HOST = '0.0.0.0'  # Lắng nghe trên tất cả network interfaces
