@@ -1,0 +1,6 @@
+{
+  "item_name": "Test Race Condition",
+  "starting_price": 100,
+  "auction_duration": 180,
+  "description": "Config dành cho race condition testing - 3 phút đủ thời gian setup 4 clients"
+}
