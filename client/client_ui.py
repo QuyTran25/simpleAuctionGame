@@ -619,6 +619,7 @@ class AuctionClientGUI:
             self.add_log(f"🎁 Vật phẩm: {self.item_name}", "info")
             self.add_log(f"💰 Giá khởi điểm: ${self.starting_price}", "info")
             self.add_log(f"💰 Giá hiện tại: ${self.current_price}", "info")
+            self.add_log(f"⏸️  Đợi admin bắt đầu game...", "warning")
         
         elif msg_type == "NEW_PRICE":
             self.current_price = message.get("value", 0)
@@ -649,6 +650,17 @@ class AuctionClientGUI:
             self.add_log(f"{'='*50}\n", "winner")
             self.timer_label.config(text="🏆 Đã kết thúc!", fg="#f1c40f")
             messagebox.showinfo("🎉 Kết Thúc", msg_text)
+        
+        elif msg_type == "GAME_START":
+            # NEW: Nhận thông báo game bắt đầu
+            start_msg = message.get("message", "Game đã bắt đầu!")
+            duration = message.get("duration", 0)
+            self.add_log(f"\n{'='*50}", "winner")
+            self.add_log(f"🚀 {start_msg}", "winner")
+            self.add_log(f"⏰ Thời gian: {duration} giây", "info")
+            self.add_log(f"{'='*50}\n", "winner")
+            # Hiển thị popup
+            messagebox.showinfo("🎮 Game Bắt Đầu!", f"{start_msg}\nThời gian: {duration}s")
         
         elif msg_type == "UPDATE_TIMER":
             # Nhận cập nhật thời gian từ server mỗi giây

@@ -30,6 +30,31 @@ def signal_handler(sig, frame):
     print("\n[SERVER] Nhận tín hiệu dừng server (Ctrl+C)...")
     shutdown_server()
 
+def wait_for_admin_start():
+    """
+    Thread để đợi admin nhấn Y/N để bắt đầu game
+    """
+    global timer_thread
+    
+    while not shutdown_flag.is_set():
+        try:
+            user_input = input().strip().upper()
+            
+            if user_input == 'Y':
+                print("\n" + "=" * 60)
+                print("🚀 ADMIN ĐÃ BẮT ĐẦU GAME!")
+                print("=" * 60)
+                timer_thread.start_game()
+                break
+            elif user_input == 'N':
+                print("\n[SERVER] Admin đã hủy - Đang shutdown...")
+                shutdown_server()
+                break
+            else:
+                print("❌ Vui lòng nhấn 'Y' để bắt đầu hoặc 'N' để hủy")
+        except:
+            break
+
 def shutdown_server():
     print("[SERVER] Đang shutdown server...")
     shutdown_flag.set()
@@ -95,7 +120,7 @@ def start_server():
         print(f"[ERROR] Không thể khởi động server: {e}")
         sys.exit(1)
     
-    #  BƯỚC 4: Khởi động Timer Thread 
+    #  BƯỚC 4: Khởi động Timer Thread (CHƯA BẮT ĐẦU ĐẾM NGƯỢC)
     print("[TIMER] Khởi động timer thread...")
     timer_thread = TimerThread(
         duration=auction_config.auction_duration,
@@ -103,10 +128,19 @@ def start_server():
         auction_state=auction_state
     )
     timer_thread.start()
-    print(f"[TIMER] Timer đã bắt đầu đếm ngược {auction_config.auction_duration} giây")
+    print(f"[TIMER] Timer đã sẵn sàng ({auction_config.auction_duration} giây)")
+    print("-" * 60)
+    print()
+    print("⏸️  GAME CHƯA BẮT ĐẦU - Đợi admin...")
+    print("📢 Nhấn 'Y' và Enter để BẮT ĐẦU đấu giá")
+    print("📢 Nhấn 'N' và Enter để HỦY và thoát")
     print("-" * 60)
     
-    # BƯỚC 5: Accept Loop (Main Server Loop)
+    # BƯỚC 5: Start Admin Input Thread
+    admin_thread = threading.Thread(target=wait_for_admin_start, daemon=True)
+    admin_thread.start()
+    
+    # BƯỚC 6: Accept Loop (Main Server Loop)
     client_counter = 0
     active_threads = []  # Danh sách tracking các client threads
     

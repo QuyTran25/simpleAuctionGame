@@ -35,6 +35,10 @@ class TimerThread(threading.Thread):
         self.is_running = True
         self.daemon = True  # Thread sẽ tự động kết thúc khi main thread kết thúc
         
+        # NEW: Flag để chờ admin start
+        self.wait_for_start = True
+        self.game_started = False
+        
         # Flags để tracking đã gửi cảnh báo chưa
         self.warning_10s_sent = False
         self.warning_5s_sent = False
@@ -44,7 +48,18 @@ class TimerThread(threading.Thread):
         Main loop của Timer Thread
         Đếm ngược từ duration về 0
         """
-        print(f"[TIMER] Bắt đầu đếm ngược {self.duration} giây")
+        print(f"[TIMER] Thread khởi động - Đợi admin bắt đầu game...")
+        
+        # NEW: Đợi admin start game
+        while self.wait_for_start and self.is_running:
+            time.sleep(0.5)  # Check mỗi 0.5 giây
+        
+        if not self.is_running:
+            print("[TIMER] Timer đã bị dừng trước khi bắt đầu")
+            return
+        
+        print(f"[TIMER] 🚀 Game đã bắt đầu! Đếm ngược {self.duration} giây")
+        self.game_started = True
         
         # Gửi initial timer update
         self.broadcast_timer_update()
@@ -180,6 +195,23 @@ class TimerThread(threading.Thread):
         # Import ở đây để tránh circular import
         import sys
         sys.exit(0)  # Exit để trigger cleanup trong main_server.py
+    
+    def start_game(self):
+        """
+        NEW: Method để admin start game (gọi khi nhấn Y)
+        """
+        if self.wait_for_start:
+            print("[TIMER] 🎮 Admin đã bắt đầu game!")
+            self.wait_for_start = False
+            
+            # Broadcast GAME_START message
+            if self.auction_hub:
+                message = {
+                    "type": "GAME_START",
+                    "message": "🎮 Phiên đấu giá đã bắt đầu!",
+                    "duration": self.duration
+                }
+                self.auction_hub.broadcast_message(message)
     
     def stop(self):
         """
